@@ -1,0 +1,111 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Oblique - Community Landingpage">
+  <main class="relative isolate overflow-hidden">
+    <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(0,184,169,0.14),_transparent_30%),radial-gradient(circle_at_80%_20%,_rgba(255,122,36,0.09),_transparent_26%),linear-gradient(180deg,_#111111_0%,_#0c0c0c_50%,_#090909_100%)]"></div>
+    <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:96px_96px] opacity-25 [mask-image:radial-gradient(ellipse_at_center,black,transparent_76%)]"></div>
+
+    <header class="relative mx-auto w-full max-w-6xl px-4 pb-10 pt-8 sm:px-6 sm:pb-14 lg:pt-10">
+      <div class="overflow-hidden bg-[#141414] shadow-[0_34px_120px_rgba(0,0,0,0.62)]">
+        <img src="/assets/banner.png" alt="Oblique logo banner" class="aspect-[1024/500] h-auto w-full object-cover" />
+      </div>
+
+      <div class="mt-8 space-y-6 bg-[#151515]/92 p-6 shadow-[0_34px_120px_rgba(0,0,0,0.42)] backdrop-blur-sm sm:p-8 lg:p-10">
+        <div class="max-w-3xl space-y-4">
+          <p class="text-[11px] uppercase tracking-[0.34em] text-[#00b8a9]">TikTok Community Landingpage</p>
+          <h1 class="text-4xl font-semibold tracking-[0.05em] text-[#f2f2f2] sm:text-5xl lg:text-6xl" style="font-family: Georgia, 'Times New Roman', serif;">
+            Oblique Leaderboard-Gewinnspiel
+          </h1>
+          <p class="max-w-2xl text-sm leading-7 text-white/68 sm:text-base">
+            Spiele Oblique kostenlos, sichere dir einen Platz in den Top 1000 und nimm automatisch an der monatlichen Verlosung teil.
+            30 % des monatlichen App-Gewinns vor Steuern fließen in den Community-Pool. Eine Auszahlung erfolgt, sobald im jeweiligen Monat
+            mindestens 50 € erreicht werden.
+          </p>
+        </div>
+
+        <a
+          href="https://play.google.com/store/apps/details?id=com.nona.oblique"
+          target="_blank"
+          rel="noreferrer"
+          class="inline-flex min-h-16 w-full items-center justify-center bg-[#00b8a9] px-5 py-4 text-center text-sm font-black uppercase tracking-[0.12em] leading-6 text-[#081112] shadow-[0_22px_60px_rgba(0,184,169,0.28)] transition-transform transition-colors hover:-translate-y-0.5 hover:bg-[#16cfc0] sm:px-6 sm:text-base lg:w-auto lg:min-w-[26rem]"
+        >
+          👉 JETZT OBLIQUE KOSTENLOS DOWNLOADEN
+        </a>
+
+        <div class="flex flex-wrap gap-3 text-sm text-white/48">
+          <a href="/oblique/teilnahmebedingungen" class="bg-[#1b1b1b] px-4 py-2 transition-colors hover:bg-[#222222] hover:text-white/72">
+            Teilnahmebedingungen
+          </a>
+          <a href="/oblique/leaderboard" class="bg-[#1b1b1b] px-4 py-2 transition-colors hover:bg-[#222222] hover:text-white/72">
+            Zum Leaderboard
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <section class="relative mx-auto w-full max-w-5xl px-4 pb-10 sm:px-6 lg:pb-14">
+      <div class="bg-[#151515]/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:p-8">
+        <p class="text-[11px] uppercase tracking-[0.32em] text-[#00b8a9]">So funktioniert es</p>
+        <div class="mt-4 max-w-4xl space-y-4">
+          <h2 class="text-2xl font-semibold text-[#f2f2f2]">Eine Community-Aktion, die Leistung belohnt</h2>
+          <p class="text-sm leading-7 text-white/68">
+            Wer sich im laufenden Monat in den Top 1000 des globalen Oblique-Leaderboards platziert, ist automatisch für die monatliche Verlosung qualifiziert.
+            So wird nicht nur gespielt, sondern gemeinsam ein Wettbewerb aufgebaut, bei dem die Community direkt beteiligt ist.
+          </p>
+          <p class="text-sm leading-7 text-white/68">
+            Der Community-Pool speist sich aus 30 % des monatlichen App-Gewinns vor Steuern. Solange das Projekt klein ist,
+            wird der Pool grundsätzlich an einen Gewinner ausgeschüttet. Für zukünftige Monate kann die Verteilung transparent angepasst werden.
+          </p>
+          <p class="text-sm leading-7 text-white/68">
+            Wird in einem Monat die Mindestgrenze von 50 € nicht erreicht, wird der Betrag in den nächsten Aktionsmonat übertragen.
+          </p>
+          <p class="text-sm leading-7 text-white/68">
+            Gewinner werden über ihre im Spiel sichtbare Player-ID identifiziert und müssen sich nach der Bekanntgabe selbst melden.
+          </p>
+          <p class="text-sm leading-7 text-white/68">
+            Zusätzlich gilt ein tägliches Limit von 20 Revives über Werbung, damit der Wettbewerb fair bleibt
+            und starke Platzierungen nicht einfach gekauft werden können.
+          </p>
+          <a
+            href="/oblique/teilnahmebedingungen"
+            class="inline-flex min-h-14 w-full items-center justify-center bg-[#1b1b1b] px-5 py-3 text-center text-sm font-semibold uppercase tracking-[0.12em] leading-6 text-white/86 transition-colors hover:bg-[#222222] sm:w-auto"
+          >
+            Teilnahmebedingungen lesen
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="relative mx-auto w-full max-w-5xl px-4 pb-14 sm:px-6">
+      <div class="bg-[#151515]/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:p-8">
+        <p class="text-[11px] uppercase tracking-[0.32em] text-[#00b8a9]">Live-Ranking</p>
+        <div class="mt-4 max-w-4xl space-y-4">
+          <h2 class="text-2xl font-semibold text-[#f2f2f2]">Aktuelles Leaderboard separat ansehen</h2>
+          <p class="text-sm leading-7 text-white/68">
+            Das vollständige Ranking läuft auf einer eigenen Seite, damit du die Platzierungen direkt teilen, verlinken
+            und unabhängig von den Teilnahmebedingungen aufrufen kannst.
+          </p>
+          <a
+            href="/oblique/leaderboard"
+            class="inline-flex min-h-14 w-full items-center justify-center bg-[#1b1b1b] px-5 py-3 text-center text-sm font-semibold uppercase tracking-[0.12em] leading-6 text-white/86 transition-colors hover:bg-[#222222] sm:w-auto"
+          >
+            Leaderboard öffnen
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="relative border-t border-white/6 py-8 text-center text-xs text-white/36">
+      <p class="mb-3 uppercase tracking-[0.24em] text-white/28">Rechtliches</p>
+      <a href="/oblique/legal" class="transition-colors hover:text-[#00b8a9]">Impressum</a>
+      <span class="mx-4 text-white/18">•</span>
+      <a href="/oblique/teilnahmebedingungen" class="transition-colors hover:text-[#00b8a9]">Teilnahmebedingungen</a>
+      <span class="mx-4 text-white/18">•</span>
+      <a href="/oblique/leaderboard" class="transition-colors hover:text-[#00b8a9]">Leaderboard</a>
+      <span class="mx-4 text-white/18">•</span>
+      <a href="/oblique/legal" class="transition-colors hover:text-[#00b8a9]">Datenschutzerklärung</a>
+    </footer>
+  </main>
+</Layout>

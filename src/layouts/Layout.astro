@@ -1,0 +1,23 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="de" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Oblique Community-Landingpage mit Download-Link, Teilnahmebedingungen, Leaderboard und rechtlichen Hinweisen zum monatlichen Gewinnspiel." />
+    <meta name="theme-color" content="#0b0b0b" />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen bg-transparent text-[#E8E8E8] antialiased selection:bg-[#00b8a9] selection:text-[#041112]">
+    <slot />
+  </body>
+</html>
