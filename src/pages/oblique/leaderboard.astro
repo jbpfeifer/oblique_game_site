@@ -1,9 +1,160 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import Leaderboard from '../../components/Leaderboard.svelte';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+const leaderboardSchema = 'oblique_leaderboard';
+const seasonsTable = 'season_scores';
+
+const supabase =
+  supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+
+const currentSeasonFacts = [
+  {
+    label: 'Format',
+    value: 'Oblique Monthly Season',
+  },
+  {
+    label: 'Laufzeit',
+    value: '1 Kalendermonat',
+  },
+  {
+    label: 'Qualifikation',
+    value: 'Top 1000 im Monatsranking',
+  },
+  {
+    label: 'Community-Pool',
+    value: '30 % der monatlichen Nettoeinnahmen',
+  },
+  {
+    label: 'Auszahlung',
+    value: 'ab 50 EUR Mindestpool',
+  },
+];
+
+const prizeNotes = [
+  {
+    title: 'Preisarten',
+    text: 'Je nach Season können Gutscheine, Sachpreise, Guthaben oder andere vorab angekündigte Vorteile vergeben werden.',
+  },
+  {
+    title: 'Verteilung',
+    text: 'Wie viele Gewinner es gibt und wie der Pool verteilt wird, richtet sich nach den für die jeweilige Season veröffentlichten Regeln.',
+  },
+  {
+    title: 'Verbindlich',
+    text: 'Maßgeblich sind immer die Teilnahmebedingungen der laufenden Season, nicht nur die Kurzfassung auf dieser Seite.',
+  },
+];
+
+type SeasonScoreRow = {
+  season_id: string | number | null;
+  player_name: string | null;
+  player_id: string | null;
+  best_score: number | null;
+  captured_at: string | null;
+};
+
+function formatSeasonLabel(seasonId: string) {
+  const normalized = seasonId.trim();
+
+  if (!normalized) return 'Unbenannte Season';
+
+  if (/^\d{4}-\d{2}$/.test(normalized)) {
+    const [year, month] = normalized.split('-').map(Number);
+    if (Number.isFinite(year) && Number.isFinite(month)) {
+      return new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' }).format(
+        new Date(year, month - 1, 1),
+      );
+    }
+  }
+
+  return normalized;
+}
+
+function toNumber(value: number | null | undefined) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+function buildArchivedSeasons(rows: SeasonScoreRow[]) {
+  const grouped = new Map<
+    string,
+    {
+      seasonId: string;
+      season: string;
+      winner: string;
+      winningScore: number;
+      entries: number;
+      latestCapture: string;
+    }
+  >();
+
+  for (const row of rows) {
+    if (!row.season_id) continue;
+
+    const seasonKey = String(row.season_id);
+    const season = grouped.get(seasonKey) ?? {
+      seasonId: seasonKey,
+      season: formatSeasonLabel(seasonKey),
+      winner: 'Unbekannt',
+      winningScore: 0,
+      entries: 0,
+      latestCapture: '',
+    };
+
+    season.entries += 1;
+
+    const score = toNumber(row.best_score);
+    const capturedAt = row.captured_at ?? '';
+    const isBetterWinner =
+      score > season.winningScore ||
+      (score === season.winningScore && capturedAt && (!season.latestCapture || capturedAt < season.latestCapture));
+
+    if (isBetterWinner) {
+      season.winner = row.player_name?.trim() || row.player_id?.trim() || 'Unbekannt';
+      season.winningScore = score;
+      season.latestCapture = capturedAt;
+    }
+
+    grouped.set(seasonKey, season);
+  }
+
+  return Array.from(grouped.values())
+    .sort((left, right) => right.seasonId.localeCompare(left.seasonId))
+    .map((season) => ({
+      seasonId: season.seasonId,
+      season: season.season,
+      status: 'Abgeschlossen',
+      winner: season.winner,
+      winningScore: new Intl.NumberFormat('de-DE').format(season.winningScore),
+      entries: season.entries,
+    }));
+}
+
+async function loadArchivedSeasons() {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .schema(leaderboardSchema)
+    .from(seasonsTable)
+    .select('season_id, player_name, player_id, best_score, captured_at')
+    .order('season_id', { ascending: false })
+    .order('best_score', { ascending: false })
+    .order('captured_at', { ascending: true });
+
+  if (error) {
+    return [];
+  }
+
+  return buildArchivedSeasons((data ?? []) as SeasonScoreRow[]);
+}
+
+const archivedSeasons = await loadArchivedSeasons();
 ---
 
-<Layout title="Oblique - Leaderboard">
+<Layout title="Oblique - Leaderboard & Season-Archiv">
   <main class="relative mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
     <div class="overflow-hidden bg-[#141414] shadow-[0_34px_120px_rgba(0,0,0,0.62)]">
       <img src="/assets/banner.png" alt="Oblique Banner" class="aspect-[1024/500] h-auto w-full object-cover" />
@@ -12,16 +163,113 @@ import Leaderboard from '../../components/Leaderboard.svelte';
     <section class="mt-8 bg-[#151515]/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:p-8">
       <p class="text-[11px] uppercase tracking-[0.32em] text-[#00b8a9]">Live-Leaderboard</p>
       <h1 class="mt-3 text-3xl font-semibold text-[#f2f2f2] sm:text-4xl" style="font-family: Georgia, 'Times New Roman', serif;">
-        Die aktuelle Oblique Monthly Season
+        Rankings, Season-Infos und das Archiv
       </h1>
       <p class="mt-4 max-w-3xl text-sm leading-7 text-white/68">
-        Hier siehst du die aktuellen Platzierungen des globalen Leaderboards. Am Ende jedes Monats wird der Community-Pool
-        leistungsbasiert nach der finalen Platzierung und der gueltigen Pool-Stufe auf die vorgesehenen Preise verteilt.
+        Hier findest du das aktuelle Monatsranking, das All-Time-Ranking und die wichtigsten Infos zur laufenden Oblique
+        Season. Abgeschlossene Seasons werden im Archiv mit den wichtigsten Ergebnissen ergänzt.
       </p>
+    </section>
+
+    <section class="mt-8 space-y-4">
+      <div class="overflow-hidden bg-[#151515]/95 shadow-[0_22px_70px_rgba(0,0,0,0.35)] backdrop-blur-sm">
+        <div class="border-l-4 border-[#00b8a9] p-6 sm:p-8">
+          <p class="text-[11px] uppercase tracking-[0.28em] text-[#00b8a9]">Laufende Season</p>
+          <div class="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div class="max-w-2xl">
+              <h2 class="text-2xl font-semibold text-[#f2f2f2] sm:text-3xl" style="font-family: Georgia, 'Times New Roman', serif;">
+                Oblique Monthly Season
+              </h2>
+              <p class="mt-3 text-sm leading-7 text-white/68">
+                Wer sich im laufenden Monat in den Top 1000 platziert, qualifiziert sich für die Season.
+                Der Community-Pool gehört zur aktiven Season und wird nur ausgeschüttet, wenn der Mindestbetrag erreicht wird.
+              </p>
+            </div>
+            <a
+              href="/oblique/teilnahmebedingungen"
+              class="inline-flex min-h-12 items-center justify-center bg-[#1b1b1b] px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white/84 transition-colors hover:bg-[#222222] hover:text-white"
+            >
+              Teilnahmebedingungen
+            </a>
+          </div>
+
+          <dl class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {currentSeasonFacts.map((fact) => (
+              <div class="border border-white/8 bg-white/[0.03] p-4">
+                <dt class="text-[11px] uppercase tracking-[0.22em] text-white/34">{fact.label}</dt>
+                <dd class="mt-2 text-sm leading-6 text-white/86">{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+
+      <div class="grid gap-4 lg:grid-cols-[1.25fr_0.95fr]">
+        <div class="bg-[#151515]/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:p-8">
+          <p class="text-[11px] uppercase tracking-[0.28em] text-[#00b8a9]">Archiv</p>
+          <h2 class="mt-3 text-2xl font-semibold text-[#f2f2f2]" style="font-family: Georgia, 'Times New Roman', serif;">
+            Vergangene Seasons
+          </h2>
+          {archivedSeasons.length > 0 ? (
+            <ul class="mt-5 space-y-3 text-sm text-white/72">
+              {archivedSeasons.map((season) => (
+                <li class="border border-white/8 bg-white/[0.03] p-4">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <p class="text-[11px] uppercase tracking-[0.2em] text-white/34">{season.season}</p>
+                      <p class="mt-2 text-base text-white/88">Gewinner: {season.winner}</p>
+                    </div>
+                    <span class="bg-[#1b1b1b] px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/46">
+                      {season.status}
+                    </span>
+                  </div>
+                  <div class="mt-4 grid gap-2 sm:grid-cols-2">
+                    <p class="text-white/54">Höchstscore: {season.winningScore}</p>
+                    <p class="text-white/54">Erfasste Einträge: {season.entries}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p class="mt-5 max-w-xl text-sm leading-7 text-white/64">
+              Sobald die erste Season abgeschlossen ist, erscheint hier das Archiv mit Gewinnern, Höchstscores
+              und den dazugehörigen Preisen oder Belohnungen.
+            </p>
+          )}
+        </div>
+
+        <div class="bg-[#151515]/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:p-8">
+          <p class="text-[11px] uppercase tracking-[0.28em] text-[#00b8a9]">Preise</p>
+          <h2 class="mt-3 text-2xl font-semibold text-[#f2f2f2]" style="font-family: Georgia, 'Times New Roman', serif;">
+            So werden Gewinne kommuniziert
+          </h2>
+          <div class="mt-5 space-y-3">
+            {prizeNotes.map((note) => (
+              <div class="border border-white/8 bg-white/[0.03] p-4">
+                <p class="text-[11px] uppercase tracking-[0.2em] text-white/34">{note.title}</p>
+                <p class="mt-2 text-sm leading-7 text-white/72">{note.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="mt-8">
       <Leaderboard client:load />
+    </section>
+
+    <section class="mt-8 bg-[#151515]/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:p-8">
+      <p class="text-[11px] uppercase tracking-[0.32em] text-[#00b8a9]">Rueckblick</p>
+      <div class="mt-4 max-w-4xl space-y-4">
+        <h2 class="text-2xl font-semibold text-[#f2f2f2]" style="font-family: Georgia, 'Times New Roman', serif;">
+          Mit jeder Season wird diese Seite aussagekraeftiger
+        </h2>
+        <p class="text-sm leading-7 text-white/68">
+          Nach abgeschlossenen Monaten wird hier sichtbar, wer vorne lag, welche Preise oder Benefits vergeben wurden
+          und wie sich die Season entwickelt hat. So bleibt die Historie nachvollziehbar, ohne die aktuelle Ranking-Seite zu ueberladen.
+        </p>
+      </div>
     </section>
   </main>
 </Layout>

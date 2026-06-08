@@ -5,10 +5,13 @@
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
   const leaderboardSchema = 'oblique_leaderboard';
-  const leaderboardTable = 'tournament_entries';
+  const monthlyLeaderboardTable = 'season_scores';
+  const allTimeLeaderboardTable = 'entries';
 
   const supabase =
     supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+
+  type LeaderboardMode = 'monthly' | 'allTime';
 
   interface ScoreEntry {
     player_name: string;
@@ -16,9 +19,33 @@
     created_at: string;
   }
 
-  let scores: ScoreEntry[] = [];
+  const leaderboardModes: Array<{
+    id: LeaderboardMode;
+    label: string;
+    description: string;
+  }> = [
+    {
+      id: 'monthly',
+      label: 'Monat',
+      description: 'Aktuelle Season',
+    },
+    {
+      id: 'allTime',
+      label: 'All Time',
+      description: 'Dauerhafte Bestwerte',
+    },
+  ];
+
+  let activeMode: LeaderboardMode = 'monthly';
+  let scoresByMode: Record<LeaderboardMode, ScoreEntry[]> = {
+    monthly: [],
+    allTime: [],
+  };
   let loading = true;
   let error: string | null = null;
+
+  $: scores = scoresByMode[activeMode];
+  let scores: ScoreEntry[] = [];
 
   function getErrorMessage(cause: unknown) {
     if (cause instanceof Error && cause.message) return cause.message;
@@ -51,14 +78,18 @@
         }).format(date);
   }
 
-  async function loadScores() {
+  function getLeaderboardTable(mode: LeaderboardMode) {
+    return mode === 'monthly' ? monthlyLeaderboardTable : allTimeLeaderboardTable;
+  }
+
+  async function loadScores(mode: LeaderboardMode) {
     if (!supabase) {
       throw new Error('Supabase-Konfiguration fehlt.');
     }
 
     const { data, error: sbError } = await supabase
       .schema(leaderboardSchema)
-      .from(leaderboardTable)
+      .from(getLeaderboardTable(mode))
       .select('player_name, score, created_at')
       .order('score', { ascending: false })
       .limit(1000);
@@ -78,7 +109,15 @@
     }
 
     try {
-      scores = await loadScores();
+      const [monthlyScores, allTimeScores] = await Promise.all([
+        loadScores('monthly'),
+        loadScores('allTime'),
+      ]);
+
+      scoresByMode = {
+        monthly: monthlyScores,
+        allTime: allTimeScores,
+      };
     } catch (e) {
       console.error('Leaderboard load failed', e);
       error = getErrorMessage(e);
@@ -91,19 +130,43 @@
 <section class="w-full bg-[#151515]/95 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-sm sm:p-6">
   <div class="flex flex-col gap-4 border-b border-white/5 pb-5 sm:flex-row sm:items-end sm:justify-between">
     <div>
-      <p class="text-[11px] uppercase tracking-[0.3em] text-white/38">Live leaderboard</p>
-      <h2 class="mt-2 text-2xl font-medium text-[#f2f2f2]" style="font-family: Georgia, 'Times New Roman', serif;">Top 1000</h2>
+      <p class="text-[11px] uppercase tracking-[0.3em] text-white/38">Live-Leaderboard</p>
+      <h2 class="mt-2 text-2xl font-medium text-[#f2f2f2]" style="font-family: Georgia, 'Times New Roman', serif;">Monatsranking und All-Time-Ranking</h2>
     </div>
-    <span class="inline-flex w-fit items-center gap-2 bg-[#00b8a9]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#00b8a9]">
+    <span class="inline-flex w-fit items-center gap-2 bg-[#00b8a9]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#00b8a9]">
       <span class="h-2 w-2 rounded-full bg-[#00b8a9]"></span>
-      Live sync
+      Daten aus dem Spiel
     </span>
+  </div>
+
+  <div class="mt-5 flex flex-wrap gap-2">
+    {#each leaderboardModes as mode}
+      <button
+        type="button"
+        class={`inline-flex min-h-12 items-center gap-3 border px-4 py-3 text-left text-sm font-semibold transition-colors ${
+          activeMode === mode.id
+            ? 'border-[#00b8a9] bg-[#00b8a9]/12 text-white'
+            : 'border-white/8 bg-[#1b1b1b] text-white/72 hover:border-white/14 hover:bg-[#222222] hover:text-white'
+        }`}
+        on:click={() => {
+          activeMode = mode.id;
+        }}
+      >
+        <span class={`h-2.5 w-2.5 rounded-full ${activeMode === mode.id ? 'bg-[#00b8a9]' : 'bg-white/18'}`}></span>
+        <span class="flex flex-col">
+          <span>{mode.label}</span>
+          <span class={`text-[11px] uppercase tracking-[0.16em] ${activeMode === mode.id ? 'text-[#00b8a9]' : 'text-white/38'}`}>
+            {mode.description}
+          </span>
+        </span>
+      </button>
+    {/each}
   </div>
 
   {#if loading}
     <div class="flex items-center justify-center gap-3 py-14 text-sm text-white/48">
       <span class="h-5 w-5 animate-spin rounded-full border-2 border-[#00b8a9] border-t-transparent"></span>
-      Lade Leaderboard...
+      Lade Leaderboards...
     </div>
   {:else if error}
     <div class="mt-4 bg-red-950/28 p-4 text-sm text-red-200">
@@ -111,9 +174,16 @@
     </div>
   {:else if scores.length === 0}
     <div class="mt-4 bg-[#1b1b1b] p-4 text-sm text-white/60">
-      Noch keine Einträge im Leaderboard.
+      In diesem Ranking sind noch keine Eintraege vorhanden.
     </div>
   {:else}
+    <div class="mt-4 text-sm leading-7 text-white/54">
+      {#if activeMode === 'monthly'}
+        Dieses Ranking zeigt die besten Scores des aktuell laufenden Season-Monats.
+      {:else}
+        Dieses Ranking zeigt pro Spieler den besten dauerhaft gespeicherten Score.
+      {/if}
+    </div>
     <div class="mt-5 max-h-[560px] overflow-auto pr-1">
       <table class="w-full border-collapse text-left text-sm">
         <thead class="sticky top-0 z-10 bg-[#151515]">
