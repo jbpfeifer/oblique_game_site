@@ -34,21 +34,6 @@ const currentSeasonFacts = [
   },
 ];
 
-const prizeNotes = [
-  {
-    title: 'Preisarten',
-    text: 'Je nach Season können Gutscheine, Sachpreise, Guthaben oder andere vorab angekündigte Vorteile vergeben werden.',
-  },
-  {
-    title: 'Verteilung',
-    text: 'Wie viele Gewinner es gibt und wie der Pool verteilt wird, richtet sich nach den für die jeweilige Season veröffentlichten Regeln.',
-  },
-  {
-    title: 'Verbindlich',
-    text: 'Maßgeblich sind immer die Teilnahmebedingungen der laufenden Season, nicht nur die Kurzfassung auf dieser Seite.',
-  },
-];
-
 type SeasonScoreRow = {
   season_id: string | number | null;
   player_name: string | null;
@@ -204,7 +189,7 @@ const archivedSeasons = await loadArchivedSeasons();
         </div>
       </div>
 
-      <div class="grid gap-4 lg:grid-cols-[1.25fr_0.95fr]">
+      <div>
         <div class="bg-[#151515]/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:p-8">
           <p class="text-[11px] uppercase tracking-[0.28em] text-[#00b8a9]">Archiv</p>
           <h2 class="mt-3 text-2xl font-semibold text-[#f2f2f2]" style="font-family: Georgia, 'Times New Roman', serif;">
@@ -236,21 +221,6 @@ const archivedSeasons = await loadArchivedSeasons();
               und den dazugehörigen Preisen oder Belohnungen.
             </p>
           )}
-        </div>
-
-        <div class="bg-[#151515]/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:p-8">
-          <p class="text-[11px] uppercase tracking-[0.28em] text-[#00b8a9]">Preise</p>
-          <h2 class="mt-3 text-2xl font-semibold text-[#f2f2f2]" style="font-family: Georgia, 'Times New Roman', serif;">
-            So werden Gewinne kommuniziert
-          </h2>
-          <div class="mt-5 space-y-3">
-            {prizeNotes.map((note) => (
-              <div class="border border-white/8 bg-white/[0.03] p-4">
-                <p class="text-[11px] uppercase tracking-[0.2em] text-white/34">{note.title}</p>
-                <p class="mt-2 text-sm leading-7 text-white/72">{note.text}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </section>
